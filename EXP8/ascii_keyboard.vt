@@ -1,0 +1,144 @@
+// Copyright (C) 2018  Intel Corporation. All rights reserved.
+// Your use of Intel Corporation's design tools, logic functions 
+// and other software and tools, and its AMPP partner logic 
+// functions, and any output files from any of the foregoing 
+// (including device programming or simulation files), and any 
+// associated documentation or information are expressly subject 
+// to the terms and conditions of the Intel Program License 
+// Subscription Agreement, the Intel Quartus Prime License Agreement,
+// the Intel FPGA IP License Agreement, or other applicable license
+// agreement, including, without limitation, that your use is for
+// the sole purpose of programming logic devices manufactured by
+// Intel and sold by Intel or its authorized distributors.  Please
+// refer to the applicable agreement for further details.
+
+// *****************************************************************************
+// This file contains a Verilog test bench template that is freely editable to  
+// suit user's needs .Comments are provided in each section to help the user    
+// fill out necessary details.                                                  
+// *****************************************************************************
+// Generated on "10/04/2018 22:35:52"
+                                                                                
+// Verilog Test Bench template for design : ascii_keyboard
+// 
+// Simulation tool : ModelSim-Altera (Verilog)
+// 
+
+`timescale 1 ps/ 1 ps
+module ascii_keyboard_vlg_tst();
+// test vector input registers
+reg clk;
+reg clrn;
+reg ps2_clk;
+reg ps2_data;
+// wires                                               
+wire [41:0]  digi_output;
+
+parameter [31:0] kbd_clk_period = 60;
+task kbd_sendcode;
+	input [7:0] code; // key to be sent
+	integer i;
+	
+	reg[10:0] send_buffer;
+	begin
+		send_buffer[0] = 1'b0; // start bit
+		send_buffer[8:1] = code; // code
+		send_buffer[9] = ~(^code); // odd parity bit
+		send_buffer[10] = 1'b1; // stop bit
+		i = 0;
+		while( i < 11) begin
+			// set kbd_data
+			ps2_data = send_buffer[i];
+			#(kbd_clk_period/2) ps2_clk = 1'b0;
+			#(kbd_clk_period/2) ps2_clk = 1'b1;
+			i = i + 1;
+		end
+	end
+endtask
+
+// assign statements (if any)                          
+ascii_keyboard i1 (
+// port map - connection between master ports and signals/registers   
+	.clk(clk),
+	.clrn(clrn),
+	.digi_output(digi_output),
+	.ps2_clk(ps2_clk),
+	.ps2_data(ps2_data)
+);
+parameter A_CODE = 8'h1C;
+parameter S_CODE = 8'h1B;
+parameter CODE_2 = 8'h1e;
+parameter CAPS_CODE = 8'h58;
+parameter BREAK_CODE = 8'hF0;
+initial
+begin
+	ps2_clk = 1'b1;
+	clk = 0;
+	clrn = 1'b0; #20;
+	clrn = 1'b1; #20;
+	kbd_sendcode(CAPS_CODE); // press 'Caps Lock'
+	#20; #20;//read data
+	kbd_sendcode(BREAK_CODE); // break code
+	#20; #20;//read data
+	kbd_sendcode(CAPS_CODE); // release 'Caps Lock'
+	#20; #20;//read data
+	
+	kbd_sendcode(A_CODE); // press 'A'
+	#20; #20;//read data
+	kbd_sendcode(BREAK_CODE); // break code
+	#20; #20;//read data
+	kbd_sendcode(A_CODE); // release 'A'
+	#20; #20;//read data
+	
+	kbd_sendcode(S_CODE); // press 'S'
+	#20; #20;//read data
+	#20 kbd_sendcode(S_CODE); // keep pressing 'S'
+	#20; #20;//read data
+	#20 kbd_sendcode(S_CODE); // keep pressing 'S'
+	#20; #20;//read data
+	kbd_sendcode(BREAK_CODE); // break code
+	#20; #20;//read data
+	kbd_sendcode(S_CODE); // release 'S'
+	#20; #20;//read data
+	
+	kbd_sendcode(CODE_2); // press '@'
+	#20; #20;//read data
+	#20 kbd_sendcode(CODE_2); // keep pressing '@'
+	#20; #20;//read data
+	#20 kbd_sendcode(CODE_2); // keep pressing '@'
+	#20; #20;//read data
+	kbd_sendcode(BREAK_CODE); // break code
+	#20; #20;//read data
+	kbd_sendcode(CODE_2); // release '@'
+	#20; #20;//read data
+	
+	kbd_sendcode(CAPS_CODE); // press 'Caps Lock'
+	#20; #20;//read data
+	#20 kbd_sendcode(CAPS_CODE); // keep pressing 'Caps Lock'
+	#20; #20;//read data
+	#20 kbd_sendcode(CAPS_CODE); // keep pressing 'Caps Lock'
+	#20; #20;//read data
+	kbd_sendcode(BREAK_CODE); // break code
+	#20; #20;//read data
+	kbd_sendcode(CAPS_CODE); // release 'Caps Lock'
+	#20; #20;//read data
+	
+	kbd_sendcode(CODE_2); // press '2'
+	#20; #20;//read data
+	#20 kbd_sendcode(CODE_2); // keep pressing '2'
+	#20; #20;//read data
+	#20 kbd_sendcode(CODE_2); // keep pressing '2'
+	#20; #20;//read data
+	kbd_sendcode(BREAK_CODE); // break code
+	#20; #20;//read data
+	kbd_sendcode(CODE_2); // release '@'
+	#20; #20;//read data
+	#20;
+$stop;
+$display("Running testbench");                       
+end
+always
+begin
+	#1 clk = ~clk;
+end
+endmodule
